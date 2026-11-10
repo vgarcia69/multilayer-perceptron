@@ -1,10 +1,6 @@
 import numpy as np
 from colorama import Fore, Style
 
-# a faire : pair plot de la data, retirer les datas inutiles
-#			finir les videos
-
-
 
 class DenseLayer:
 	"""DESNE LAYERE"""

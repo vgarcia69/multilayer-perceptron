@@ -17,16 +17,16 @@ def softmax(z):
 	exps = np.exp(z - np.max(z, axis=1, keepdims=True))
 	total = np.sum(exps, axis=1, keepdims=True)
 
-	return (np.max(exps, axis=1, keepdims=True) / total)
+	return (exps / total)
 
 
-def standard_deviation(values, mean):
-	var = 0
-	v_size = len(values)
-	if (v_size <= 1):
-		return var 
-	for v in values:
-		ecart = v - mean
-		var = var + ecart * ecart
-	var = var / (v_size - 1)
-	return math.sqrt(var)
+def binary_cross_entropy(p, Y):
+	p_clipped = np.clip(p, 1e-7, 1-1e-7)
+
+	losses = -(Y * np.log(p_clipped) + (1 - Y)*(np.log(1 - p_clipped)))
+
+	return np.mean(losses)
+
+
+def accuracy(p, Y):
+	return np.mean((p >= 0.5) == Y)
