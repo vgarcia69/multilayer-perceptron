@@ -1,15 +1,28 @@
 import numpy as np
+import Activation as act
 from colorama import Fore, Style
+
+activation_functions = {
+	"sigmoid": act.Sigmoid,
+	"relu": act.ReLU,
+	"softmax": act.Softmax
+}
+
+weights_initializers = {
+	"random": lambda n_inputs, n_neurons: np.random.randn(n_inputs, n_neurons) * 0.1,
+	"he_uniform": lambda n_inputs, n_neurons: np.random.randn(n_inputs, n_neurons) * 0.1, # a changer
+}
 
 
 class DenseLayer:
 	"""DESNE LAYERE"""
 
-	def __init__(self, n_inputs, n_neurons):
+	def __init__(self, n_inputs, n_neurons, activation=None, weights_initializer="random"):
 		"""TEST"""
 		self.n_neurons = n_neurons
 		self.n_inputs = n_inputs
-		self.weights = self.randomize_weights()
+		self.weights = weights_initializers[weights_initializer](n_inputs, n_neurons)
+		self.activation = activation_functions[activation]()
 		self.bias = np.zeros((1, self.n_neurons))
 		return
 
@@ -33,7 +46,7 @@ class DenseLayer:
 			lignes.append(Fore.YELLOW + "\u2514" + "\u2500" * 40 + R)
 			return "\n".join(lignes)
 
-		X, Z, A = self.X, self.weighted_sum, self.A
+		X, Z, A = self.X, self.Z, self.A
 
 		# Les formes sont-elles celles attendues ?
 		attendu = (X.shape[0], self.n_neurons)
@@ -73,17 +86,27 @@ class DenseLayer:
 		return "\n".join(lignes)
 
 
-	def randomize_weights(self):
-		return np.random.randn(self.n_inputs, self.n_neurons) * 0.01
+	def forward(self, X):
+		if self.activation is None:
+			return X
 
-
-	def forward(self, X, activation_func):
-		self.weighted_sum = X @ self.weights + self.bias
-		self.A = activation_func(self.weighted_sum)
 		self.X = X
+		self.Z = self.X @ self.weights + self.bias
+		self.A = self.activation.forward(self.Z)
 
 		return self.A
 
 
-	def backward():
-		return
+	def backward(self, A, learning_rate, Y=0):
+		if type(self.activation) is act.Softmax:
+			dZ = (self.A - Y) / self.X.shape[0]
+		else:
+			dZ = A * self.activation.backward(self.Z)
+
+		dW = self.X.T @ dZ
+		dB = np.sum(dZ, axis=0, keepdims=True)
+		dX = dZ @ self.weights.T
+		self.weights -= dW * learning_rate
+		self.bias -= dB * learning_rate
+
+		return dX

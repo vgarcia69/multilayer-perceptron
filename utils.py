@@ -1,32 +1,20 @@
 import numpy as np
+import random
 import math
 
-def sigmoid(z):
-	return 1 / (1 + np.exp(-z))
+def split_in_batches(X, Y, batch_size):
+	"""Decoupe X et Y en morceaux de batch_size lignes.
+	Renvoie une liste de paires (X_batch, Y_batch), chacune etant un tableau numpy 2D."""
+	batches = []
+	for start in range(0, len(X), batch_size):
+		end = start + batch_size
+		batches.append((X[start:end], Y[start:end]))
+	return batches
 
-
-def relu(z):
-	return np.maximum(0, z)
-
-
-def relu_derivative(Z):
-    return (Z > 0).astype(int)
-
-
-def softmax(z):
-	exps = np.exp(z - np.max(z, axis=1, keepdims=True))
-	total = np.sum(exps, axis=1, keepdims=True)
-
-	return (exps / total)
-
-
-def binary_cross_entropy(p, Y):
-	p_clipped = np.clip(p, 1e-7, 1-1e-7)
-
-	losses = -(Y * np.log(p_clipped) + (1 - Y)*(np.log(1 - p_clipped)))
-
-	return np.mean(losses)
-
+def shuffle_order(X, Y):
+	"""Melange les lignes de X et Y dans le meme ordre (chaque patient garde son label)."""
+	order = np.random.permutation(len(X))
+	return X[order], Y[order]
 
 def accuracy(p, Y):
 	return np.mean((p >= 0.5) == Y)

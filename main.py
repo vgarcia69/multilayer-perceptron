@@ -1,29 +1,39 @@
 import sys
 import pandas as pd
 from data_reader import Dataset
-from NeuralNetwork import NeuralNetwork
+from Model import Model
+from DenseLayer import DenseLayer
 import matplotlib as mpl
+import numpy as np
 
 
 def main():
-	#generer le training/ validation
-	df = pd.read_csv(sys.argv[1], header=None)
+	# generer le file de weight + biais entraine
+	df = pd.read_csv("training", header=None)
 	if df is None:
 		return
-
 	dataset = Dataset(df)
 
-	dataset.rand_test_split()
-
-	# dataset sera remplace par le fichier de training et le main sera split en 3 parties
-	# generer le file de weight + biais entraine
 	X = dataset.data[:, 2:].astype(float)
-	Y = (dataset.data[:, 1] == "M").astype(int)
+	is_m = dataset.data[:, 1] == "M"
+	Y = np.c_[~is_m, is_m].astype(int)
 
-	network = NeuralNetwork([X.shape[1], 4, 4, 2])
+	input_shape = X.shape[1]
+	hl1_shape = 4
+	hl2_shape = 4
+	output_shape = 2
 
-	print(network.train(X, Y))
-	# predict
+# x_train shape : (342, 30)
+# x_valid shape : (85, 30)
+	model = Model([
+		DenseLayer(input_shape, hl1_shape, activation='sigmoid', weights_initializer='he_uniform'),
+		DenseLayer(hl1_shape, hl2_shape, activation='sigmoid', weights_initializer='he_uniform'),
+		DenseLayer(hl2_shape, output_shape, activation='softmax', weights_initializer='he_uniform')
+	])
+
+	model.set(X,Y, learning_rate=0.1, n_epoch=100)
+
+	model.train()
 
 
 if __name__ == "__main__":

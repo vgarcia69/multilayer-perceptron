@@ -42,3 +42,12 @@ class Dataset:
 		"""Convertir les NaN avec la moyenne donnee"""
 		np.nan_to_num(self.data[:, :2], nan=mean, copy=False)
 
+
+if __name__ == "__main__":
+	df = pd.read_csv(sys.argv[1], header=None)
+	if df is None:
+		sys.exit(1)
+
+	dataset = Dataset(df)
+
+	dataset.rand_test_split()
