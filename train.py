@@ -23,17 +23,16 @@ def main():
 	hl2_shape = 4
 	output_shape = 2
 
-# x_train shape : (342, 30)
-# x_valid shape : (85, 30)
 	model = Model([
-		DenseLayer(input_shape, hl1_shape, activation='sigmoid', weights_initializer='he_uniform'),
-		DenseLayer(hl1_shape, hl2_shape, activation='sigmoid', weights_initializer='he_uniform'),
+		DenseLayer(input_shape, hl1_shape, activation='relu', weights_initializer='he_uniform'),
+		DenseLayer(hl1_shape, hl2_shape, activation='relu', weights_initializer='he_uniform'),
 		DenseLayer(hl2_shape, output_shape, activation='softmax', weights_initializer='he_uniform')
 	])
 
-	model.set(X,Y, learning_rate=0.1, n_epoch=100)
+	model.train(X,Y, learning_rate=0.1, n_epoch=100)
 
-	model.train()
+	print(model)
+	model.save()
 
 
 if __name__ == "__main__":
