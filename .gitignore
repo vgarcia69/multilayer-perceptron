@@ -1,5 +1,4 @@
 __pycache__
 venv
-training
-trained_model.json
-validation
+*.json
+*.csv

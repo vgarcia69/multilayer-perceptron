@@ -1,13 +1,11 @@
 import pandas as pd
-from data_reader import Dataset
-from Model import Model
-from DenseLayer import DenseLayer
-import matplotlib as mpl
+from classes.Dataset import Dataset
+from classes.Model import Model
 import numpy as np
 
 
 def main():
-	df = pd.read_csv("validation", header=None)
+	df = pd.read_csv("data/validation.csv", header=None)
 	if df is None:
 		return
 	dataset = Dataset(df)

@@ -1,6 +1,4 @@
-import pandas as pd
 import numpy as np
-import utils as u
 import sys
 
 
@@ -17,9 +15,6 @@ class Dataset:
 			sys.exit(1)
 
 
-	def shape(self):
-		return self.data.shape
-
 	def randomize_order(self):
 		self.data = self.df.sample(frac=1, random_state=1).to_numpy()
 
@@ -34,20 +29,11 @@ class Dataset:
 		training_datas = self.data[0:limit]
 		validation_datas = self.data[limit: size]
 
-		np.savetxt("validation", validation_datas, "%s", ',')
-		np.savetxt("training", training_datas, "%s", ',')
+		np.savetxt("data/validation.csv", validation_datas, "%s", ',')
+		np.savetxt("data/training.csv", training_datas, "%s", ',')
 		
 
 	def patch_null(self, mean):
 		"""Convertir les NaN avec la moyenne donnee"""
 		np.nan_to_num(self.data[:, :2], nan=mean, copy=False)
 
-
-if __name__ == "__main__":
-	df = pd.read_csv(sys.argv[1], header=None)
-	if df is None:
-		sys.exit(1)
-
-	dataset = Dataset(df)
-
-	dataset.rand_test_split()

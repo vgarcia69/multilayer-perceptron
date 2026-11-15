@@ -1,15 +1,12 @@
-import sys
 import pandas as pd
-from data_reader import Dataset
-from Model import Model
-from DenseLayer import DenseLayer
-import matplotlib as mpl
+from classes.Dataset import Dataset
+from classes.Model import Model
+from classes.DenseLayer import DenseLayer
 import numpy as np
 
 
 def main():
-	# generer le file de weight + biais entraine
-	df = pd.read_csv("training", header=None)
+	df = pd.read_csv("data/training.csv", header=None)
 	if df is None:
 		return
 	dataset = Dataset(df)
@@ -31,7 +28,6 @@ def main():
 
 	model.train(X,Y, learning_rate=0.1, n_epoch=100)
 
-	print(model)
 	model.save()
 
 

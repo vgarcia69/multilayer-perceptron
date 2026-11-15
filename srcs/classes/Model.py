@@ -1,9 +1,10 @@
-from DenseLayer import DenseLayer
+from classes.DenseLayer import DenseLayer
+import classes.Loss as l
+import classes.Accuracy as a
+
 from colorama import Fore
 import numpy as np
-import utils as u
-import Loss as l
-import Accuracy as a
+import utils.train_helper as u
 import json
 
 loss_functions = {
@@ -58,7 +59,7 @@ class Model():
 		for layer in reversed(self.layers):
 			A = layer.backward(A, self.learning_rate, batch_y)
 
-	def save(self, filename="trained_model.json"):
+	def save(self, filename="data/trained_model.json"):
 		data = {
 		"loss": self.loss_name,
 		"mean": self.mean.tolist(),
@@ -72,7 +73,7 @@ class Model():
 
 
 	@staticmethod
-	def load(filename="trained_model.json"):
+	def load(filename="data/trained_model.json"):
 		with open(filename, "r") as f:
 			data = json.load(f)
 		layers = [DenseLayer.load(d) for d in data["layers"]]

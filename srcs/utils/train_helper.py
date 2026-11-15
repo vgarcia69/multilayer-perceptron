@@ -1,6 +1,4 @@
 import numpy as np
-import random
-import math
 
 def split_in_batches(X, Y, batch_size):
 	"""Decoupe X et Y en morceaux de batch_size lignes.
@@ -15,6 +13,3 @@ def shuffle_order(X, Y):
 	"""Melange les lignes de X et Y dans le meme ordre (chaque patient garde son label)."""
 	order = np.random.permutation(len(X))
 	return X[order], Y[order]
-
-def accuracy(p, Y):
-	return np.mean((p >= 0.5) == Y)
