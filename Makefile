@@ -1,53 +1,38 @@
-VENV     = venv
-PYTHON   = $(VENV)/bin/python
-PIP      = $(VENV)/bin/pip
-DATA     = data.csv
-WEIGHTS  = weights.json
-STAMP    = $(VENV)/.installed
-PLOTS    = plots
-OPEN     = $(shell command -v open 2>/dev/null || command -v xdg-open 2>/dev/null)
+VENV	= venv
+PYTHON	= $(VENV)/bin/python
+PIP	= $(VENV)/bin/pip
+STAMP	= $(VENV)/.installed
 
-.PHONY: help venv install venv-on venv-off all clean fclean re
+GENERATED = data/training.csv data/validation.csv data/trained_model.json
 
-help:
-	@echo "make venv       -> crée le venv et installe les dépendances"
-	@echo "make venv-on    -> ouvre un shell avec le venv activé (exit pour en sortir)"
-	@echo "make venv-off   -> rappel pour désactiver le venv"
-	@echo "make train      -> train.py"
-	@echo "make predict    -> predict.py"
-	@echo "make all        -> train puis predict"
-	@echo "make clean / fclean / re"
+.PHONY: split train predict clean fclean
 
-$(PYTHON):
+echo:
+	@echo "Available targets:"
+	@echo "  split   - Split the dataset into training and validation sets"
+	@echo "  train   - Train the model using the training set"
+	@echo "  predict - Make predictions using the trained model"
+	@echo "  clean   - Remove generated files"
+	@echo "  fclean  - Remove generated files and virtual environment"
+
+split: $(STAMP)
+	$(PYTHON) srcs/split_data.py
+
+train: $(STAMP)
+	$(PYTHON) srcs/train.py
+
+predict: $(STAMP)
+	$(PYTHON) srcs/predict.py
+
+$(STAMP):
 	python3 -m venv $(VENV)
-
-$(STAMP): $(PYTHON)
 	$(PIP) install --upgrade pip
 	$(PIP) install numpy pandas matplotlib colorama
 	touch $(STAMP)
 
-venv: $(STAMP)
-
-install: venv
-
-venv-on: $(STAMP)
-	@echo "venv activé — tape 'exit' pour le désactiver"
-	@VIRTUAL_ENV=$(CURDIR)/$(VENV) PATH=$(CURDIR)/$(VENV)/bin:$$PATH $$SHELL -i
-
-venv-off:
-	@echo "Dans un shell 'make venv-on' : tape 'exit'"
-	@echo "Si tu as fait 'source venv/bin/activate' : tape 'deactivate'"
-
-describe: $(STAMP)
-	$(PYTHON) describe.py $(TRAIN)
-
-all: train predict
-
 clean:
-	rm -rf __pycache__
+	rm -f $(GENERATED)
 
 fclean: clean
-	rm -f $(WEIGHTS) houses.csv
-	rm -rf $(PLOTS)
-
-re: fclean all
+	rm -rf $(VENV)
+	find . -name __pycache__ -type d -prune -exec rm -rf {} +

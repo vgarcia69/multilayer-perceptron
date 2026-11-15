@@ -19,7 +19,7 @@ class Model():
 		self.accuracy = a.Accuracy()
 		return
 
-	def train(self, X, Y, loss="binary_cross_entropy",  n_batch=20, n_epoch=10000, learning_rate=0.01):
+	def train(self, X, Y, loss="binary_cross_entropy",  n_batch=20, n_epoch=10000, learning_rate=0.01, X_val=None, Y_val=None):
 		self.X = X
 		self.Y = Y
 		self.mean = np.mean(X, axis=0)
@@ -45,7 +45,13 @@ class Model():
 				patch = self.loss.backward(A, Y_b)
 				self.backward(patch, Y_b)
 
-			print(f"epoch {i+1:02d}/{self.epoches:02d} - accuracy: {np.mean(acc):.4f} - loss: {np.mean(errors):.4f}")
+			if X_val is not None and Y_val is not None:
+				A_val = self.predict(X_val)
+				acc_val = self.accuracy.forward(A_val, Y_val)
+				errors_val = self.loss.forward(A_val, Y_val)
+				print(f"epoch {i+1:02d}/{self.epoches:02d} - {Fore.CYAN}accuracy: {np.mean(acc):.4f} - loss: {np.mean(errors):.4f} - {Fore.GREEN}accuracy (val): {np.mean(acc_val):.4f} - loss (val): {np.mean(errors_val):.4f}")
+			else:
+				print(f"epoch {i+1:02d}/{self.epoches:02d} - {Fore.CYAN}accuracy: {np.mean(acc):.4f} - loss: {np.mean(errors):.4f} - {Fore.GREEN}accuracy (val): N/A - loss (val): N/A")
 			
 		return 
 
@@ -70,7 +76,6 @@ class Model():
 		with open(filename, "w") as f:
 			json.dump(data, f, indent=2)
 		return
-
 
 	@staticmethod
 	def load(filename="data/trained_model.json"):
