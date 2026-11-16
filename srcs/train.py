@@ -37,10 +37,9 @@ def main():
 		DenseLayer(hl3_shape, output_shape, activation='softmax', weights_initializer='he_uniform')
 	])
 
-	model.train(X, Y, X_val=X_val, Y_val=Y_val, learning_rate=0.0314, batch_size=8, epochs=100)
+	model.train(X, Y, X_val=X_val, Y_val=Y_val, loss="categorical_cross_entropy", learning_rate=0.0314, batch_size=8, epochs=100)
 
 	model.save()
-
 
 	model.show_learning_curve()
 

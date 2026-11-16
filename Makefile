@@ -1,7 +1,8 @@
 VENV	= venv
 PYTHON	= $(VENV)/bin/python
-PIP	= $(VENV)/bin/pip
+PIP     = $(VENV)/bin/pip
 STAMP	= $(VENV)/.installed
+DATA    = data/data.csv
 
 GENERATED = data/training.csv data/validation.csv data/trained_model.json
 
@@ -9,14 +10,14 @@ GENERATED = data/training.csv data/validation.csv data/trained_model.json
 
 echo:
 	@echo "Available targets:"
-	@echo "  split   - Split the dataset into training and validation sets"
+	@echo "  split   - Split the dataset (make split DATA=path/to/file.csv)"
 	@echo "  train   - Train the model using the training set"
 	@echo "  predict - Make predictions using the trained model"
 	@echo "  clean   - Remove generated files"
 	@echo "  fclean  - Remove generated files and virtual environment"
 
 split: $(STAMP)
-	$(PYTHON) srcs/split_data.py
+	$(PYTHON) srcs/split_data.py $(DATA)
 
 train: $(STAMP)
 	$(PYTHON) srcs/train.py
