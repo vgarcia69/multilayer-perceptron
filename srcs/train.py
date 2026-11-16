@@ -23,22 +23,26 @@ def main():
 	X_val = dataset.data[:, 2:].astype(float)
 	is_m_val = dataset.data[:, 1] == "M"
 	Y_val = np.c_[~is_m_val, is_m_val].astype(int)
-	# ajouter le loss val au print de l epoch pour suivt, + graphique matplotlib
 
 	input_shape = X.shape[1]
-	hl1_shape = 4
-	hl2_shape = 4
+	hl1_shape = 24
+	hl2_shape = 24
+	hl3_shape = 24
 	output_shape = 2
 
 	model = Model([
-		DenseLayer(input_shape, hl1_shape, activation='relu', weights_initializer='he_uniform'),
-		DenseLayer(hl1_shape, hl2_shape, activation='relu', weights_initializer='he_uniform'),
-		DenseLayer(hl2_shape, output_shape, activation='softmax', weights_initializer='he_uniform')
+		DenseLayer(input_shape, hl1_shape, activation='sigmoid', weights_initializer='he_uniform'),
+		DenseLayer(hl1_shape, hl2_shape, activation='sigmoid', weights_initializer='he_uniform'),
+		DenseLayer(hl2_shape, hl3_shape, activation='sigmoid', weights_initializer='he_uniform'),
+		DenseLayer(hl3_shape, output_shape, activation='softmax', weights_initializer='he_uniform')
 	])
 
-	model.train(X,Y, learning_rate=0.1, n_epoch=100, X_val=X_val, Y_val=Y_val)
+	model.train(X, Y, X_val=X_val, Y_val=Y_val, learning_rate=0.0314, batch_size=8, epochs=100)
 
 	model.save()
+
+
+	model.show_learning_curve()
 
 
 if __name__ == "__main__":

@@ -9,15 +9,13 @@ activation_functions = {
 
 weights_initializers = {
 	"random": lambda n_inputs, n_neurons: np.random.randn(n_inputs, n_neurons) * 0.1,
-	"he_uniform": lambda n_inputs, n_neurons: np.random.randn(n_inputs, n_neurons) * 0.1, # a changer
+	"he_uniform": lambda n_inputs, n_neurons: np.random.uniform(-np.sqrt(6 / n_inputs), np.sqrt(6 / n_inputs), (n_inputs, n_neurons))
 }
 
 
 class DenseLayer:
-	""" Hidden Layers + Final Layer """
 
 	def __init__(self, n_inputs, n_neurons, activation, weights_initializer="random"):
-		"""TEST"""
 		self.n_neurons = n_neurons
 		self.n_inputs = n_inputs
 		self.weights = weights_initializers[weights_initializer](n_inputs, n_neurons)
@@ -29,7 +27,6 @@ class DenseLayer:
 	def __len__(self):
 		return self.n_neurons
 
-
 	def forward(self, X):
 		self.X = X
 		self.Z = self.X @ self.weights + self.bias
@@ -37,8 +34,7 @@ class DenseLayer:
 
 		return self.A
 
-
-	def backward(self, dA, learning_rate, Y=0):
+	def backward(self, dA, Y, learning_rate):
 		# backward activation, (derivee de la fonction)
 		if type(self.activation) is act.Softmax:
 			dZ = (self.A - Y) / self.X.shape[0]

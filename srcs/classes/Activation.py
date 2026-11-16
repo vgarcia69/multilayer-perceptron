@@ -4,11 +4,11 @@ from abc import ABC, abstractmethod
 
 class Activation(ABC):
 	@abstractmethod
-	def forward(self, x):
-		return x
+	def forward(self, X):
+		return X
 
 	@abstractmethod
-	def backward(self, x):
+	def backward(self, X):
 		return 1
 
 class Sigmoid(Activation):

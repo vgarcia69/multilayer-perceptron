@@ -6,6 +6,7 @@ from colorama import Fore
 import numpy as np
 import utils.train_helper as u
 import json
+import matplotlib.pyplot as plt
 
 loss_functions = {
 	"binary_cross_entropy": l.BinaryCrossEntropy,
@@ -19,7 +20,7 @@ class Model():
 		self.accuracy = a.Accuracy()
 		return
 
-	def train(self, X, Y, loss="binary_cross_entropy",  n_batch=20, n_epoch=10000, learning_rate=0.01, X_val=None, Y_val=None):
+	def train(self, X, Y, X_val=None, Y_val=None, loss="binary_cross_entropy", learning_rate=0.01, batch_size=20, epochs=10000):
 		self.X = X
 		self.Y = Y
 		self.mean = np.mean(X, axis=0)
@@ -27,32 +28,38 @@ class Model():
 		self.std[self.std == 0] = 1
 		self.loss_name = loss
 		self.loss = loss_functions[loss]()
-		self.n_batch = n_batch
-		self.epoches = n_epoch
+		self.batch_size = batch_size
+		self.epochs = epochs
 		self.learning_rate = learning_rate
+		self.accuracy_val = []
+		self.loss_val = []
+		self.accuracy_train = []
+		self.loss_train = []
 
 		X_norm = (self.X - self.mean) / self.std
-		for i in range(0, self.epoches):
+
+		for i in range(0, self.epochs):
 			X_curr, Y_curr = u.shuffle_order(X_norm, self.Y)
-			batches = u.split_in_batches(X_curr, Y_curr, self.n_batch)
+			batches = u.split_in_batches(X_curr, Y_curr, self.batch_size)
 			acc = []
-			errors = []
+			los = []
 			for batch in batches:
 				X_b, Y_b = batch[0], batch[1]
 				A = self.forward(X_b)
-				errors.append(self.loss.forward(A, Y_b))
+				los.append(self.loss.forward(A, Y_b))
 				acc.append(self.accuracy.forward(A, Y_b))
 				patch = self.loss.backward(A, Y_b)
 				self.backward(patch, Y_b)
 
 			if X_val is not None and Y_val is not None:
 				A_val = self.predict(X_val)
-				acc_val = self.accuracy.forward(A_val, Y_val)
-				errors_val = self.loss.forward(A_val, Y_val)
-				print(f"epoch {i+1:02d}/{self.epoches:02d} - {Fore.CYAN}accuracy: {np.mean(acc):.4f} - loss: {np.mean(errors):.4f} - {Fore.GREEN}accuracy (val): {np.mean(acc_val):.4f} - loss (val): {np.mean(errors_val):.4f}")
+				self.accuracy_val.append(self.accuracy.forward(A_val, Y_val))
+				self.loss_val.append(self.loss.forward(A_val, Y_val))
+				print(f"{Fore.WHITE}epoch {i+1:02d}/{self.epochs:02d} - {Fore.CYAN}accuracy: {np.mean(acc):.4f} - loss: {np.mean(los):.4f} - {Fore.GREEN}accuracy (val): {np.mean(self.accuracy_val[-1]):.4f} - loss (val): {np.mean(self.loss_val[-1]):.4f}")
 			else:
-				print(f"epoch {i+1:02d}/{self.epoches:02d} - {Fore.CYAN}accuracy: {np.mean(acc):.4f} - loss: {np.mean(errors):.4f} - {Fore.GREEN}accuracy (val): N/A - loss (val): N/A")
-			
+				print(f"{Fore.WHITE}epoch {i+1:02d}/{self.epochs:02d} - {Fore.CYAN}accuracy: {np.mean(acc):.4f} - loss: {np.mean(los):.4f} - {Fore.GREEN}accuracy (val): N/A - loss (val): N/A")
+			self.accuracy_train.append(np.mean(acc))
+			self.loss_train.append(np.mean(los))
 		return 
 
 	def forward(self, X):
@@ -61,9 +68,29 @@ class Model():
 			curr_input = layer.forward(curr_input)
 		return curr_input
 
-	def backward(self, A, batch_y):
+	def backward(self, dA, Y):
 		for layer in reversed(self.layers):
-			A = layer.backward(A, self.learning_rate, batch_y)
+			dA = layer.backward(dA, Y, self.learning_rate)
+
+	def show_learning_curve(self):
+		plt.figure(figsize=(8, 5))
+		plt.title("Loss")
+		plt.xlabel("Epoch")
+		plt.ylabel("Loss")
+		plt.plot(self.loss_train, label="Training", color="blue", linewidth=2)
+		plt.plot(self.loss_val, label="Validation", color="red", linewidth=2)
+		plt.legend()
+
+
+		plt.figure(figsize=(8, 5))
+		plt.title("Learning Curve")
+		plt.xlabel("Epoch")
+		plt.ylabel("Accuracy")
+		plt.plot(self.accuracy_train, label="Training", color="blue", linewidth=2)
+		plt.plot(self.accuracy_val, label="Validation", color="red", linewidth=2)
+		plt.legend()
+
+		plt.show()
 
 	def save(self, filename="data/trained_model.json"):
 		data = {
