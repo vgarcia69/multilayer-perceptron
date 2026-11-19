@@ -21,26 +21,11 @@ class Model():
 		return
 
 	def train(self, X, Y, X_val=None, Y_val=None, loss="binary_cross_entropy", learning_rate=0.01, batch_size=20, epochs=10000):
-		if batch_size < 1 or epochs < 1 or learning_rate <= 0:
-			raise ValueError(f"invalid hyperparameters: batch_size={batch_size}, epochs={epochs}, learning_rate={learning_rate} (all must be > 0)")
-		self.X = X
-		self.Y = Y
-		self.mean = np.mean(X, axis=0)
-		self.std = np.std(X, axis=0)
-		self.std[self.std == 0] = 1
-		self.loss_name = loss
-		self.loss = loss_functions[loss]()
-		self.batch_size = batch_size
-		self.epochs = epochs
-		self.learning_rate = learning_rate
-		self.accuracy_val = []
-		self.loss_val = []
-		self.accuracy_train = []
-		self.loss_train = []
+		self.set_train_parameters(X, Y, loss, batch_size, epochs, learning_rate)
 
 		X_norm = (self.X - self.mean) / self.std
 
-		for i in range(0, self.epochs):
+		for epoch in range(0, self.epochs):
 			X_curr, Y_curr = u.shuffle_order(X_norm, self.Y)
 			batches = u.split_in_batches(X_curr, Y_curr, self.batch_size)
 			acc = []
@@ -52,16 +37,9 @@ class Model():
 				acc.append(self.accuracy.forward(A, Y_b))
 				patch = self.loss.backward(A, Y_b)
 				self.backward(patch, Y_b)
+			self.manage_training_visuals(X_val, Y_val, epoch, acc, los)
 
-			if X_val is not None and Y_val is not None:
-				A_val = self.predict(X_val)
-				self.accuracy_val.append(self.accuracy.forward(A_val, Y_val))
-				self.loss_val.append(self.loss.forward(A_val, Y_val))
-				print(f"{Fore.WHITE}epoch {i+1:02d}/{self.epochs:02d} - {Fore.CYAN}accuracy: {np.mean(acc):.4f} - loss: {np.mean(los):.4f} - {Fore.GREEN}accuracy (val): {np.mean(self.accuracy_val[-1]):.4f} - loss (val): {np.mean(self.loss_val[-1]):.4f}")
-			else:
-				print(f"{Fore.WHITE}epoch {i+1:02d}/{self.epochs:02d} - {Fore.CYAN}accuracy: {np.mean(acc):.4f} - loss: {np.mean(los):.4f} - {Fore.GREEN}accuracy (val): N/A - loss (val): N/A")
-			self.accuracy_train.append(np.mean(acc))
-			self.loss_train.append(np.mean(los))
+
 		return 
 
 	def forward(self, X):
@@ -74,24 +52,10 @@ class Model():
 		for layer in reversed(self.layers):
 			dA = layer.backward(dA, Y, self.learning_rate)
 
-	def show_learning_curve(self):
-		plt.figure(figsize=(8, 5))
-		plt.title("Loss")
-		plt.xlabel("Epoch")
-		plt.ylabel("Loss")
-		plt.plot(self.loss_train, label="Training", color="blue", linewidth=2)
-		plt.plot(self.loss_val, label="Validation", color="red", linewidth=2)
-		plt.legend()
-
-		plt.figure(figsize=(8, 5))
-		plt.title("Learning Curve")
-		plt.xlabel("Epoch")
-		plt.ylabel("Accuracy")
-		plt.plot(self.accuracy_train, label="Training", color="blue", linewidth=2)
-		plt.plot(self.accuracy_val, label="Validation", color="red", linewidth=2)
-		plt.legend()
-
-		plt.show()
+	def predict(self, X):
+		x_norm =  (X - self.mean) / self.std
+		A = self.forward(x_norm)
+		return A
 
 	def save(self, filename="data/trained_model.json"):
 		data = {
@@ -116,10 +80,57 @@ class Model():
 		model.loss = loss_functions[data["loss"]]()
 		return model
 
-	def predict(self, X):
-		x_norm =  (X - self.mean) / self.std
-		A = self.forward(x_norm)
-		return A
+	def show_learning_curve(self):
+		plt.figure(figsize=(8, 5))
+		plt.title("Loss")
+		plt.xlabel("Epoch")
+		plt.ylabel("Loss")
+		plt.plot(self.loss_train, label="Training", color="blue", linewidth=2)
+		plt.plot(self.loss_val, label="Validation", color="red", linewidth=2)
+		plt.legend()
+
+		plt.figure(figsize=(8, 5))
+		plt.title("Learning Curve")
+		plt.xlabel("Epoch")
+		plt.ylabel("Accuracy")
+		plt.plot(self.accuracy_train, label="Training", color="blue", linewidth=2)
+		plt.plot(self.accuracy_val, label="Validation", color="red", linewidth=2)
+		plt.legend()
+
+		plt.show()
+
+	def set_train_parameters(self, X, Y, loss, batch_size, epochs, learning_rate):
+		if batch_size < 1 or epochs < 1 or learning_rate <= 0:
+			raise ValueError(f"invalid hyperparameters: batch_size={batch_size}, epochs={epochs}, learning_rate={learning_rate} (all must be > 0)")
+		self.X = X
+		self.Y = Y
+		self.mean = np.mean(X, axis=0)
+		self.std = np.std(X, axis=0)
+		self.std[self.std == 0] = 1
+		self.loss_name = loss
+		self.loss = loss_functions[loss]()
+		self.batch_size = batch_size
+		self.epochs = epochs
+		self.learning_rate = learning_rate
+		self.accuracy_val = []
+		self.loss_val = []
+		self.accuracy_train = []
+		self.loss_train = []
+
+	def manage_training_visuals(self, X_val, Y_val, epoch, accuracy, loss):
+		if X_val is not None and Y_val is not None:
+			A_val = self.predict(X_val)
+			self.accuracy_val.append(self.accuracy.forward(A_val, Y_val))
+			self.loss_val.append(self.loss.forward(A_val, Y_val))
+			print(f"{Fore.WHITE}epoch {epoch+1:02d}/{self.epochs:02d} - {Fore.CYAN}accuracy: {np.mean(accuracy):.4f}",
+				f"- loss: {np.mean(loss):.4f} - {Fore.GREEN}accuracy (val): {np.mean(self.accuracy_val[-1]):.4f} - loss (val): {np.mean(self.loss_val[-1]):.4f}")
+		else:
+			print(f"{Fore.WHITE}epoch {epoch+1:02d}/{self.epochs:02d} - {Fore.CYAN}accuracy: {np.mean(accuracy):.4f}",
+				f"- loss: {np.mean(loss):.4f} - {Fore.GREEN}accuracy (val): N/A - loss (val): N/A")
+
+		self.accuracy_train.append(np.mean(accuracy))
+		self.loss_train.append(np.mean(loss))
+
 
 	def __str__(self):
 		lines = []
