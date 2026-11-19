@@ -1,4 +1,5 @@
-import pandas as pd
+import sys
+from utils.io_helper import load_csv, to_float, check_labels
 from classes.Dataset import Dataset
 from classes.Model import Model
 from classes.DenseLayer import DenseLayer
@@ -6,21 +7,19 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 def main():
-	df = pd.read_csv("data/training.csv", header=None)
-	if df is None:
-		return
+	df = load_csv("data/training.csv")
 	dataset = Dataset(df)
 
-	X = dataset.data[:, 2:].astype(float)
+	X = to_float(dataset.data[:, 2:], "data/training.csv")
+	check_labels(dataset.data[:, 1], "data/training.csv")
 	is_m = dataset.data[:, 1] == "M"
 	Y = np.c_[~is_m, is_m].astype(int)
 
-	df = pd.read_csv("data/validation.csv", header=None)
-	if df is None:
-		return
+	df = load_csv("data/validation.csv")
 	dataset = Dataset(df)
 
-	X_val = dataset.data[:, 2:].astype(float)
+	X_val = to_float(dataset.data[:, 2:], "data/validation.csv")
+	check_labels(dataset.data[:, 1], "data/validation.csv")
 	is_m_val = dataset.data[:, 1] == "M"
 	Y_val = np.c_[~is_m_val, is_m_val].astype(int)
 
@@ -39,7 +38,11 @@ def main():
 
 	model.train(X, Y, X_val=X_val, Y_val=Y_val, loss="categorical_cross_entropy", learning_rate=0.0314, batch_size=8, epochs=100)
 
-	model.save()
+	try:
+		model.save()
+	except OSError as e:
+		print(f"Error: cannot save model: {e}", file=sys.stderr)
+		sys.exit(1)
 
 	model.show_learning_curve()
 

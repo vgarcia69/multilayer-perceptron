@@ -1,5 +1,6 @@
+import os
 import sys
-import pandas as pd
+from utils.io_helper import load_csv
 from classes.Dataset import Dataset
 
 def main():
@@ -7,14 +8,15 @@ def main():
 		print(f"Usage: python {sys.argv[0]} <dataset.csv>")
 		sys.exit(1)
 
-	try:
-		df = pd.read_csv(sys.argv[1], header=None)
-	except (FileNotFoundError, pd.errors.EmptyDataError, pd.errors.ParserError) as e:
-		print(f"Error: cannot read '{sys.argv[1]}': {e}")
-		sys.exit(1)
+	df = load_csv(sys.argv[1])
 	dataset = Dataset(df)
 
-	dataset.rand_test_split()
+	try:
+		os.makedirs("data", exist_ok=True)
+		dataset.rand_test_split()
+	except OSError as e:
+		print(f"Error: cannot write split files: {e}", file=sys.stderr)
+		sys.exit(1)
 
 if __name__ == "__main__":
 	try:
