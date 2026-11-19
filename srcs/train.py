@@ -23,6 +23,10 @@ def main():
 	is_m_val = dataset.data[:, 1] == "M"
 	Y_val = np.c_[~is_m_val, is_m_val].astype(int)
 
+	if X_val.shape[1] != X.shape[1]:
+		print(f"Error: 'data/validation.csv' has {X_val.shape[1]} features, 'data/training.csv' has {X.shape[1]}", file=sys.stderr)
+		sys.exit(1)
+
 	input_shape = X.shape[1]
 	hl1_shape = 24
 	hl2_shape = 24

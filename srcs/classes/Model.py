@@ -21,6 +21,8 @@ class Model():
 		return
 
 	def train(self, X, Y, X_val=None, Y_val=None, loss="binary_cross_entropy", learning_rate=0.01, batch_size=20, epochs=10000):
+		if batch_size < 1 or epochs < 1 or learning_rate <= 0:
+			raise ValueError(f"invalid hyperparameters: batch_size={batch_size}, epochs={epochs}, learning_rate={learning_rate} (all must be > 0)")
 		self.X = X
 		self.Y = Y
 		self.mean = np.mean(X, axis=0)
@@ -81,7 +83,6 @@ class Model():
 		plt.plot(self.loss_val, label="Validation", color="red", linewidth=2)
 		plt.legend()
 
-
 		plt.figure(figsize=(8, 5))
 		plt.title("Learning Curve")
 		plt.xlabel("Epoch")
@@ -94,10 +95,10 @@ class Model():
 
 	def save(self, filename="data/trained_model.json"):
 		data = {
-		"loss": self.loss_name,
-		"mean": self.mean.tolist(),
-		"std": self.std.tolist(),
-		"layers": [layer.save() for layer in self.layers],
+			"loss": self.loss_name,
+			"mean": self.mean.tolist(),
+			"std": self.std.tolist(),
+			"layers": [layer.save() for layer in self.layers],
 		}
 
 		with open(filename, "w") as f:

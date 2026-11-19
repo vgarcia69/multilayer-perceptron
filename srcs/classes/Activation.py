@@ -13,7 +13,7 @@ class Activation(ABC):
 
 class Sigmoid(Activation):
 	def forward(self, X):
-		return 1 / (1 + np.exp(-X))
+		return 1 / (1 + np.exp(-np.clip(X, -500, 500)))
 
 	def backward(self, X):
 		sigmoid_x = self.forward(X)

@@ -9,6 +9,12 @@ def main():
 		sys.exit(1)
 
 	df = load_csv(sys.argv[1])
+	if df.shape[1] < 3:
+		print(f"Error: '{sys.argv[1]}' needs at least 3 columns (id, label, features...), got {df.shape[1]}", file=sys.stderr)
+		sys.exit(1)
+	if len(df) < 3:
+		print(f"Error: '{sys.argv[1]}' needs at least 3 rows to get a non-empty validation set, got {len(df)}", file=sys.stderr)
+		sys.exit(1)
 	dataset = Dataset(df)
 
 	try:

@@ -12,6 +12,9 @@ def load_csv(path):
 
 
 def to_float(values, path):
+	if values.shape[1] == 0:
+		print(f"Error: '{path}' has no feature columns (expected: id, label, features...)", file=sys.stderr)
+		sys.exit(1)
 	try:
 		X = values.astype(float)
 	except ValueError as e:
