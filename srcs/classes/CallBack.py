@@ -1,5 +1,6 @@
 from colorama import Fore, Style
 from matplotlib import pyplot as plt
+import json
 
 
 class CallBack():
@@ -45,7 +46,22 @@ class ConsoleLogger(CallBack):
 		return f"{color}{text}{Style.RESET_ALL}"
 
 class History(CallBack):
-	pass
+	def on_train_begin(self, epochs):
+		self.history = {}
+		self.epoch = []
+
+	def on_epoch_end(self, epoch, logs=None):
+		self.epoch.append(epoch + 1)
+		for name, value in logs.items():
+			self.history.setdefault(name, []).append(float(value))
+
+	def save(self, filename="data/history.json"):
+		data = {"epoch": self.epoch}
+		data.update(self.history)
+		with open(filename, "w") as f:
+			json.dump(data, f, indent=2)
+
+
 
 class Graphics(CallBack):
 	def __init__(self):

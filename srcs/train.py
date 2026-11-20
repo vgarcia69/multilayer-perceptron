@@ -3,7 +3,7 @@ from utils.io_helper import load_csv, to_float, check_labels
 from classes.Dataset import Dataset
 from classes.Model import Model
 from classes.DenseLayer import DenseLayer
-from classes.CallBack import ConsoleLogger, Graphics, EarlyStopping 
+from classes.CallBack import ConsoleLogger, Graphics, EarlyStopping, History 
 import numpy as np
 
 def main():
@@ -33,6 +33,7 @@ def main():
 	hl3_shape = 24
 	output_shape = 2
 
+	history = History()
 	model = Model([
 		DenseLayer(input_shape, hl1_shape, activation='sigmoid', weights_initializer='he_uniform'),
 		DenseLayer(hl1_shape, hl2_shape, activation='sigmoid', weights_initializer='he_uniform'),
@@ -41,7 +42,7 @@ def main():
 	])
 
 	model.train(X, Y, X_val=X_val, Y_val=Y_val,
-				callbacks=[ConsoleLogger(), Graphics(), EarlyStopping()],
+				callbacks=[ConsoleLogger(), history, Graphics(), EarlyStopping()],
 				loss="categorical_cross_entropy",
 	            learning_rate=0.04,
 				batch_size=8,
@@ -52,6 +53,8 @@ def main():
 	except OSError as e:
 		print(f"Error: cannot save model: {e}", file=sys.stderr)
 		sys.exit(1)
+
+	history.save()
 
 if __name__ == "__main__":
 	try:
