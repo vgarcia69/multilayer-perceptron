@@ -66,3 +66,19 @@ class DenseLayer:
 		layer.weights = np.array(data["weights"])
 		layer.bias = np.array(data["bias"])
 		return layer
+
+	def get_weights(self):
+		return self.weights.copy()
+
+	def get_bias(self):
+		return self.bias.copy()
+
+	def set_weights(self, weights):
+		if weights.shape != self.weights.shape:
+			raise ValueError(f"weights shape mismatch: expected {self.weights.shape}, got {weights.shape}")
+		self.weights = weights
+
+	def set_bias(self, bias):
+		if bias.shape != self.bias.shape:
+			raise ValueError(f"bias shape mismatch: expected {self.bias.shape}, got {bias.shape}")
+		self.bias = bias

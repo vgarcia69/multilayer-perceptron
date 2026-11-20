@@ -25,9 +25,8 @@ def main():
 		print(f"Error: 'data/validation.csv' has {X.shape[1]} features, model expects {model.layers[0].n_inputs}", file=sys.stderr)
 		sys.exit(1)
 
-	result = model.predict(X)
-
-	print(model.accuracy.forward(result, Y))
+	loss = model.evaluate(X, Y)
+	print(f"Validation loss: {loss:.4f}")
 
 
 if __name__ == "__main__":

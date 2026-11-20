@@ -6,7 +6,6 @@ from colorama import Fore
 import numpy as np
 import utils.train_helper as u
 import json
-import matplotlib.pyplot as plt
 
 loss_functions = {
 	"binary_cross_entropy": l.BinaryCrossEntropy,
@@ -20,16 +19,20 @@ class Model():
 		self.accuracy = a.Accuracy()
 		return
 
-	def train(self, X, Y, X_val=None, Y_val=None, loss="binary_cross_entropy", learning_rate=0.01, batch_size=20, epochs=10000):
+	def train(self, X, Y, X_val=None, Y_val=None, callbacks=None, 
+	        loss="binary_cross_entropy", learning_rate=0.01, batch_size=20, epochs=10000):
+
 		self.set_train_parameters(X, Y, loss, batch_size, epochs, learning_rate)
 
 		X_norm = (self.X - self.mean) / self.std
 
+		self.callback(callbacks, 'set_model', self)
+		self.callback(callbacks, 'on_train_begin', self.epochs)
+
 		for epoch in range(0, self.epochs):
 			X_curr, Y_curr = u.shuffle_order(X_norm, self.Y)
 			batches = u.split_in_batches(X_curr, Y_curr, self.batch_size)
-			acc = []
-			los = []
+			acc, los = [], []
 			for batch in batches:
 				X_b, Y_b = batch[0], batch[1]
 				A = self.forward(X_b)
@@ -37,10 +40,14 @@ class Model():
 				acc.append(self.accuracy.forward(A, Y_b))
 				patch = self.loss.backward(A, Y_b)
 				self.backward(patch, Y_b)
-			self.manage_training_visuals(X_val, Y_val, epoch, acc, los)
 
+			metrics = self.manage_train_history(X_val, Y_val, acc, los)
 
-		return 
+			if self.callback(callbacks, 'on_epoch_end', epoch, metrics):
+				break
+
+		self.callback(callbacks, 'on_train_end')
+
 
 	def forward(self, X):
 		curr_input = X
@@ -56,6 +63,12 @@ class Model():
 		x_norm =  (X - self.mean) / self.std
 		A = self.forward(x_norm)
 		return A
+
+	def evaluate(self, X, Y):
+		A = self.predict(X)
+		binary = loss_functions["binary_cross_entropy"]()
+		loss = binary.forward(A, Y)
+		return loss
 
 	def save(self, filename="data/trained_model.json"):
 		data = {
@@ -80,24 +93,14 @@ class Model():
 		model.loss = loss_functions[data["loss"]]()
 		return model
 
-	def show_learning_curve(self):
-		plt.figure(figsize=(8, 5))
-		plt.title("Loss")
-		plt.xlabel("Epoch")
-		plt.ylabel("Loss")
-		plt.plot(self.loss_train, label="Training", color="blue", linewidth=2)
-		plt.plot(self.loss_val, label="Validation", color="red", linewidth=2)
-		plt.legend()
-
-		plt.figure(figsize=(8, 5))
-		plt.title("Learning Curve")
-		plt.xlabel("Epoch")
-		plt.ylabel("Accuracy")
-		plt.plot(self.accuracy_train, label="Training", color="blue", linewidth=2)
-		plt.plot(self.accuracy_val, label="Validation", color="red", linewidth=2)
-		plt.legend()
-
-		plt.show()
+	def callback(self, callbacks, event, *args, **kwargs):
+		if callbacks:
+			for cb in callbacks:
+				method = getattr(cb, event)
+				flag = method(*args, **kwargs)
+				if flag:
+					return True
+		return False
 
 	def set_train_parameters(self, X, Y, loss, batch_size, epochs, learning_rate):
 		if batch_size < 1 or epochs < 1 or learning_rate <= 0:
@@ -117,20 +120,39 @@ class Model():
 		self.accuracy_train = []
 		self.loss_train = []
 
-	def manage_training_visuals(self, X_val, Y_val, epoch, accuracy, loss):
+	def manage_train_history(self, X_val, Y_val, accuracy, loss):
 		if X_val is not None and Y_val is not None:
 			A_val = self.predict(X_val)
 			self.accuracy_val.append(self.accuracy.forward(A_val, Y_val))
 			self.loss_val.append(self.loss.forward(A_val, Y_val))
-			print(f"{Fore.WHITE}epoch {epoch+1:02d}/{self.epochs:02d} - {Fore.CYAN}accuracy: {np.mean(accuracy):.4f}",
-				f"- loss: {np.mean(loss):.4f} - {Fore.GREEN}accuracy (val): {np.mean(self.accuracy_val[-1]):.4f} - loss (val): {np.mean(self.loss_val[-1]):.4f}")
-		else:
-			print(f"{Fore.WHITE}epoch {epoch+1:02d}/{self.epochs:02d} - {Fore.CYAN}accuracy: {np.mean(accuracy):.4f}",
-				f"- loss: {np.mean(loss):.4f} - {Fore.GREEN}accuracy (val): N/A - loss (val): N/A")
 
 		self.accuracy_train.append(np.mean(accuracy))
 		self.loss_train.append(np.mean(loss))
 
+		metrics = {'accuracy': self.accuracy_train[-1], 'loss': self.loss_train[-1]}
+		if self.loss_val:
+			metrics['val_accuracy'] = self.accuracy_val[-1]
+			metrics['val_loss'] = self.loss_val[-1]
+
+		return metrics
+
+	def get_weights(self):
+		return [layer.get_weights() for layer in self.layers]
+
+	def get_bias(self):
+		return [layer.get_bias() for layer in self.layers]
+
+	def set_weights(self, weights):
+		if len(weights) != len(self.layers):
+			raise ValueError(f"weights length mismatch: expected {len(self.layers)}, got {len(weights)}")
+		for layer, w in zip(self.layers, weights):
+			layer.set_weights(w)
+
+	def set_bias(self, bias):
+		if len(bias) != len(self.layers):
+			raise ValueError(f"bias length mismatch: expected {len(self.layers)}, got {len(bias)}")
+		for layer, b in zip(self.layers, bias):
+			layer.set_bias(b)
 
 	def __str__(self):
 		lines = []

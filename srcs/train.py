@@ -3,8 +3,8 @@ from utils.io_helper import load_csv, to_float, check_labels
 from classes.Dataset import Dataset
 from classes.Model import Model
 from classes.DenseLayer import DenseLayer
+from classes.CallBack import ConsoleLogger, Graphics, EarlyStopping 
 import numpy as np
-import matplotlib.pyplot as plt
 
 def main():
 	df = load_csv("data/training.csv")
@@ -40,16 +40,18 @@ def main():
 		DenseLayer(hl3_shape, output_shape, activation='softmax', weights_initializer='he_uniform')
 	])
 
-	model.train(X, Y, X_val=X_val, Y_val=Y_val, loss="categorical_cross_entropy", learning_rate=0.0314, batch_size=8, epochs=100)
+	model.train(X, Y, X_val=X_val, Y_val=Y_val,
+				callbacks=[ConsoleLogger(), Graphics(), EarlyStopping()],
+				loss="categorical_cross_entropy",
+	            learning_rate=0.04,
+				batch_size=8,
+				epochs=10000)
 
 	try:
 		model.save()
 	except OSError as e:
 		print(f"Error: cannot save model: {e}", file=sys.stderr)
 		sys.exit(1)
-
-	model.show_learning_curve()
-
 
 if __name__ == "__main__":
 	try:
