@@ -58,44 +58,42 @@ class History(CallBack):
 	def save(self, filename="data/history.json"):
 		data = {"epoch": self.epoch}
 		data.update(self.history)
-		with open(filename, "w") as f:
-			json.dump(data, f, indent=2)
+		try:
+			with open(filename, "w") as f:
+				json.dump(data, f, indent=2)
+		except PermissionError:
+			print(f"Error : history has not been saved, openning {filename} failed")
 
-
+	def __getitem__(self, key):
+		return self.history[key]
 
 class Graphics(CallBack):
-	def __init__(self):
-		pass
-
-	def on_train_begin(self, epochs):
-		self.epochs = epochs
-		self.accuracy_train = []
-		self.loss_train = []
-		self.accuracy_val = []
-		self.loss_val = []
-
-	def on_epoch_end(self, epoch, metrics):
-		self.accuracy_train.append(metrics["accuracy"])
-		self.loss_train.append(metrics["loss"])
-		if "val_accuracy" in metrics and "val_loss" in metrics:
-			self.accuracy_val.append(metrics["val_accuracy"])
-			self.loss_val.append(metrics["val_loss"])
+	def __init__(self, history):
+		self.history = history
 
 	def on_train_end(self, logs=None):
+		train_loss = self.history["loss"]
+		train_accuracy = self.history["accuracy"]
+		val_accuracy = self.history["val_accuracy"]
+		val_loss = self.history["val_loss"]
+
+		if val_loss is None or val_accuracy is None:
+			return
+
 		plt.figure(figsize=(8, 5))
 		plt.title("Loss")
 		plt.xlabel("Epoch")
 		plt.ylabel("Loss")
-		plt.plot(self.loss_train, label="Training", color="blue", linewidth=2)
-		plt.plot(self.loss_val, label="Validation", color="red", linewidth=2)
+		plt.plot(train_loss, label="Training", color="blue", linewidth=2)
+		plt.plot(val_loss, label="Validation", color="red", linewidth=2)
 		plt.legend()
 
 		plt.figure(figsize=(8, 5))
 		plt.title("Learning Curve")
 		plt.xlabel("Epoch")
 		plt.ylabel("Accuracy")
-		plt.plot(self.accuracy_train, label="Training", color="blue", linewidth=2)
-		plt.plot(self.accuracy_val, label="Validation", color="red", linewidth=2)
+		plt.plot(train_accuracy, label="Training", color="blue", linewidth=2)
+		plt.plot(val_accuracy, label="Validation", color="red", linewidth=2)
 		plt.legend()
 
 		plt.show()

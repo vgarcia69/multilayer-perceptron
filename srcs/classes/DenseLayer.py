@@ -1,5 +1,6 @@
 import numpy as np
 import classes.Activation as act
+import classes.Optimizer as o
 
 activation_functions = {
 	"sigmoid": act.Sigmoid,
@@ -12,16 +13,21 @@ weights_initializers = {
 	"he_uniform": lambda n_inputs, n_neurons: np.random.uniform(-np.sqrt(6 / n_inputs), np.sqrt(6 / n_inputs), (n_inputs, n_neurons))
 }
 
+optimizer_functions = {
+	"default": o.Optimizer,
+	"adam": o.Adam
+}
 
 class DenseLayer:
 
-	def __init__(self, n_inputs, n_neurons, activation, weights_initializer="random"):
+	def __init__(self, n_inputs, n_neurons, activation, optimizer="default", weights_initializer="random"):
 		self.n_neurons = n_neurons
 		self.n_inputs = n_inputs
 		self.weights = weights_initializers[weights_initializer](n_inputs, n_neurons)
 		self.activation_name = activation
 		self.activation = activation_functions[activation]()
 		self.bias = np.zeros((1, self.n_neurons))
+		self.optimizer = optimizer_functions[optimizer]()
 		return
 
 	def __len__(self):
@@ -35,7 +41,7 @@ class DenseLayer:
 		return self.A
 
 	def backward(self, dA, Y, learning_rate):
-		# backward activation, (derivee de la fonction)
+		#backward activation
 		if type(self.activation) is act.Softmax:
 			dZ = (self.A - Y) / self.X.shape[0]
 		else:
@@ -46,8 +52,7 @@ class DenseLayer:
 		dB = np.sum(dZ, axis=0, keepdims=True)
 		dX = dZ @ self.weights.T
 
-		self.weights -= dW * learning_rate
-		self.bias -= dB * learning_rate
+		self.optimizer.update(dW, dB, self.weights, self.bias, learning_rate)
 
 		return dX
 

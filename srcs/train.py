@@ -24,8 +24,7 @@ def main():
 	Y_val = np.c_[~is_m_val, is_m_val].astype(int)
 
 	if X_val.shape[1] != X.shape[1]:
-		print(f"Error: 'data/validation.csv' has {X_val.shape[1]} features, 'data/training.csv' has {X.shape[1]}", file=sys.stderr)
-		sys.exit(1)
+		raise OSError(f"Error: 'data/validation.csv' has {X_val.shape[1]} features, 'data/training.csv' has {X.shape[1]}")
 
 	input_shape = X.shape[1]
 	hl1_shape = 24
@@ -34,30 +33,26 @@ def main():
 	output_shape = 2
 
 	history = History()
+
 	model = Model([
-		DenseLayer(input_shape, hl1_shape, activation='sigmoid', weights_initializer='he_uniform'),
-		DenseLayer(hl1_shape, hl2_shape, activation='sigmoid', weights_initializer='he_uniform'),
-		DenseLayer(hl2_shape, hl3_shape, activation='sigmoid', weights_initializer='he_uniform'),
-		DenseLayer(hl3_shape, output_shape, activation='softmax', weights_initializer='he_uniform')
+		DenseLayer(input_shape, hl1_shape, activation='sigmoid', weights_initializer='he_uniform', optimizer='adam'),
+		DenseLayer(hl1_shape, hl2_shape, activation='sigmoid', weights_initializer='he_uniform', optimizer='adam'),
+		DenseLayer(hl2_shape, hl3_shape, activation='sigmoid', weights_initializer='he_uniform', optimizer='adam'),
+		DenseLayer(hl3_shape, output_shape, activation='softmax', weights_initializer='he_uniform', optimizer='adam')
 	])
 
 	model.train(X, Y, X_val=X_val, Y_val=Y_val,
-				callbacks=[ConsoleLogger(), history, Graphics(), EarlyStopping()],
+				callbacks=[ConsoleLogger(), history, Graphics(history), EarlyStopping()],
 				loss="categorical_cross_entropy",
-	            learning_rate=0.04,
+	            learning_rate=0.0001,
 				batch_size=8,
-				epochs=10000)
+				epochs=100)
 
-	try:
-		model.save()
-	except OSError as e:
-		print(f"Error: cannot save model: {e}", file=sys.stderr)
-		sys.exit(1)
-
+	model.save()
 	history.save()
 
 if __name__ == "__main__":
 	try:
 		main()
-	except (EOFError, KeyboardInterrupt):
-		print()
+	except (EOFError, KeyboardInterrupt, OSError) as e:
+		print(e, file=sys.stderr)

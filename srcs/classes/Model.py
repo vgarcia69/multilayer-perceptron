@@ -12,6 +12,7 @@ loss_functions = {
 	"categorical_cross_entropy": l.CategoricalCrossEntropy
 }
 
+
 class Model():
 
 	def __init__(self, layers=None):
