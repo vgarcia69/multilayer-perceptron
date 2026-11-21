@@ -11,6 +11,14 @@ def load_csv(path):
 		sys.exit(1)
 
 
+def load_json(path):
+	try:
+		return pd.read_json(path)
+	except (OSError, UnicodeDecodeError, pd.errors.EmptyDataError, pd.errors.ParserError) as e:
+		print(f"Error: cannot read '{path}': {e}", file=sys.stderr)
+		sys.exit(1)
+
+
 def to_float(values, path):
 	if values.shape[1] == 0:
 		print(f"Error: '{path}' has no feature columns (expected: id, label, features...)", file=sys.stderr)

@@ -32,5 +32,4 @@ class Softmax(Activation):
 		return exps / np.sum(exps, axis=1, keepdims=True)
 
 	def backward(self, X):
-		# Softmax derivative is more complex and usually combined with the loss function
 		raise NotImplementedError("Softmax backward pass is typically handled with the loss function.")

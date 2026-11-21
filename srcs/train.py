@@ -3,7 +3,7 @@ from utils.io_helper import load_csv, to_float, check_labels
 from classes.Dataset import Dataset
 from classes.Model import Model
 from classes.DenseLayer import DenseLayer
-from classes.CallBack import ConsoleLogger, Graphics, EarlyStopping, History 
+from classes.CallBacks import ConsoleLogger, Graphics, EarlyStopping, History
 import numpy as np
 
 def main():
@@ -31,25 +31,27 @@ def main():
 	hl2_shape = 24
 	hl3_shape = 24
 	output_shape = 2
+	optimizer = "default"
 
 	history = History()
 
 	model = Model([
-		DenseLayer(input_shape, hl1_shape, activation='sigmoid', weights_initializer='he_uniform', optimizer='adam'),
-		DenseLayer(hl1_shape, hl2_shape, activation='sigmoid', weights_initializer='he_uniform', optimizer='adam'),
-		DenseLayer(hl2_shape, hl3_shape, activation='sigmoid', weights_initializer='he_uniform', optimizer='adam'),
-		DenseLayer(hl3_shape, output_shape, activation='softmax', weights_initializer='he_uniform', optimizer='adam')
+		DenseLayer(input_shape, hl1_shape, activation='sigmoid', weights_initializer='he_uniform', optimizer=optimizer),
+		DenseLayer(hl1_shape, hl2_shape, activation='sigmoid', weights_initializer='he_uniform', optimizer=optimizer),
+		DenseLayer(hl2_shape, hl3_shape, activation='sigmoid', weights_initializer='he_uniform', optimizer=optimizer),
+		DenseLayer(hl3_shape, output_shape, activation='softmax', weights_initializer='he_uniform', optimizer=optimizer)
 	])
 
 	model.train(X, Y, X_val=X_val, Y_val=Y_val,
 				callbacks=[ConsoleLogger(), history, Graphics(history), EarlyStopping()],
 				loss="categorical_cross_entropy",
-	            learning_rate=0.0001,
+	            learning_rate=0.01,
 				batch_size=8,
-				epochs=100)
+				epochs=1000)
 
 	model.save()
-	history.save()
+
+	history.save("data/history_default.json")
 
 if __name__ == "__main__":
 	try:

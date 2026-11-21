@@ -9,7 +9,7 @@ class Adam(Optimizer):
 	def __init__(self):
 		self.t = 0
 		self.beta1 = 0.9
-		self.beta2 = 0.99
+		self.beta2 = 0.999
 		self.momentW = 0 
 		self.momentB = 0
 		self.varianceW = 0
@@ -34,7 +34,3 @@ class Adam(Optimizer):
 	
 		W -= learning_rate * mcW / (np.sqrt(vcW) + epsylon)
 		B -= learning_rate * mcB / (np.sqrt(vcB) + epsylon)
-
-# class Adamax(Optimizer):
-# 	def __init__(self, learning_rate=0.01):
-# 		super().__init__(learning_rate)
