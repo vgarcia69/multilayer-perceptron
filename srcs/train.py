@@ -6,31 +6,30 @@ from classes.DenseLayer import DenseLayer
 from classes.CallBacks import ConsoleLogger, Graphics, EarlyStopping, History
 import numpy as np
 
-def main():
-	df = load_csv("data/training.csv")
+def get_XY(path):
+	df = load_csv(path)
 	dataset = Dataset(df)
 
-	X = to_float(dataset.data[:, 2:], "data/training.csv")
-	check_labels(dataset.data[:, 1], "data/training.csv")
+	X = to_float(dataset.data[:, 2:], path)
+	check_labels(dataset.data[:, 1], path)
 	is_m = dataset.data[:, 1] == "M"
 	Y = np.c_[~is_m, is_m].astype(int)
 
-	df = load_csv("data/validation.csv")
-	dataset = Dataset(df)
+	return X, Y
 
-	X_val = to_float(dataset.data[:, 2:], "data/validation.csv")
-	check_labels(dataset.data[:, 1], "data/validation.csv")
-	is_m_val = dataset.data[:, 1] == "M"
-	Y_val = np.c_[~is_m_val, is_m_val].astype(int)
+
+def main():
+	X, Y = get_XY("data/training.csv")
+	X_val, Y_val = get_XY("data/validation.csv")
 
 	if X_val.shape[1] != X.shape[1]:
-		raise OSError(f"Error: 'data/validation.csv' has {X_val.shape[1]} features, 'data/training.csv' has {X.shape[1]}")
+		raise OSError(f"Error: validation has {X_val.shape[1]} features, training has {X.shape[1]}")
 
 	input_shape = X.shape[1]
 	hl1_shape = 24
 	hl2_shape = 24
 	output_shape = 2
-	optimizer = "adam"
+	optimizer = "default"
 
 	history = History()
 	console_logger = ConsoleLogger()
@@ -47,12 +46,12 @@ def main():
 				callbacks=[console_logger, history, graphics, early_stopping],
 				loss="categorical_cross_entropy",
 	            learning_rate=0.001,
-				batch_size=8,
+				batch_size=1,
 				epochs=1000)
 
 	model.save()
 
-	history.save("data/history_default.json")
+	history.save(f"data/history_{optimizer}.json")
 
 if __name__ == "__main__":
 	try:

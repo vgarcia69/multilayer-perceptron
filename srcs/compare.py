@@ -18,7 +18,6 @@ def read_json(df):
 
 
 def model_name(path):
-	# "data/history_adam.json" -> "adam"
 	name = os.path.splitext(os.path.basename(path))[0]
 	return name.removeprefix("history_")
 
