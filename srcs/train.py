@@ -29,23 +29,24 @@ def main():
 	input_shape = X.shape[1]
 	hl1_shape = 24
 	hl2_shape = 24
-	hl3_shape = 24
 	output_shape = 2
-	optimizer = "default"
+	optimizer = "adam"
 
 	history = History()
+	console_logger = ConsoleLogger()
+	graphics = Graphics(history)
+	early_stopping = EarlyStopping()
 
 	model = Model([
 		DenseLayer(input_shape, hl1_shape, activation='sigmoid', weights_initializer='he_uniform', optimizer=optimizer),
 		DenseLayer(hl1_shape, hl2_shape, activation='sigmoid', weights_initializer='he_uniform', optimizer=optimizer),
-		DenseLayer(hl2_shape, hl3_shape, activation='sigmoid', weights_initializer='he_uniform', optimizer=optimizer),
-		DenseLayer(hl3_shape, output_shape, activation='softmax', weights_initializer='he_uniform', optimizer=optimizer)
+		DenseLayer(hl2_shape, output_shape, activation='softmax', weights_initializer='he_uniform', optimizer=optimizer)
 	])
 
 	model.train(X, Y, X_val=X_val, Y_val=Y_val,
-				callbacks=[ConsoleLogger(), history, Graphics(history), EarlyStopping()],
+				callbacks=[console_logger, history, graphics, early_stopping],
 				loss="categorical_cross_entropy",
-	            learning_rate=0.01,
+	            learning_rate=0.001,
 				batch_size=8,
 				epochs=1000)
 

@@ -3,7 +3,7 @@ PYTHON	= $(VENV)/bin/python
 PIP     = $(VENV)/bin/pip
 STAMP	= $(VENV)/.installed
 DATA   ?= data/data.csv
-MODELS ?= data/trained_model.json
+MODELS ?= $(wildcard data/history_*.json)
 GENERATED = data/training.csv data/validation.csv data/trained_model.json
 
 .PHONY: split train predict compare clean fclean echo
