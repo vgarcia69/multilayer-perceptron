@@ -3,7 +3,11 @@ from utils.io_helper import load_csv, to_float, check_labels
 from classes.Dataset import Dataset
 from classes.Model import Model
 from classes.DenseLayer import DenseLayer
-from classes.CallBacks import ConsoleLogger, Graphics, EarlyStopping, History
+from classes.CallBacks.ConsoleLogger import ConsoleLogger
+from classes.CallBacks.Graphics import Graphics 
+from classes.CallBacks.EarlyStopping import EarlyStopping
+from classes.CallBacks.History import History
+from classes.CallBacks.Metrics import Metrics
 import numpy as np
 
 def get_XY(path):
@@ -29,8 +33,10 @@ def main():
 	hl1_shape = 24
 	hl2_shape = 24
 	output_shape = 2
-	optimizer = "default"
+	optimizer = "gradient_descent"
 
+	metrics = Metrics(X, Y, metrics_required=["accuracy", "loss", "recall", "precision"])
+	metrics_val = Metrics(X_val, Y_val, prefix="val_")
 	history = History()
 	console_logger = ConsoleLogger()
 	graphics = Graphics(history)
@@ -42,8 +48,8 @@ def main():
 		DenseLayer(hl2_shape, output_shape, activation='softmax', weights_initializer='he_uniform', optimizer=optimizer)
 	])
 
-	model.train(X, Y, X_val=X_val, Y_val=Y_val,
-				callbacks=[console_logger, history, graphics, early_stopping],
+	model.train(X, Y,
+				callbacks=[metrics, metrics_val, console_logger, history, graphics, early_stopping],
 				loss="categorical_cross_entropy",
 	            learning_rate=0.001,
 				batch_size=1,

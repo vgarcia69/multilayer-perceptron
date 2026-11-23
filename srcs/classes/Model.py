@@ -1,6 +1,5 @@
 from classes.DenseLayer import DenseLayer
 import classes.Loss as l
-import classes.Accuracy as a
 
 from colorama import Fore
 import numpy as np
@@ -17,10 +16,9 @@ class Model():
 
 	def __init__(self, layers=None):
 		self.layers = layers
-		self.accuracy = a.Accuracy()
 		return
 
-	def train(self, X, Y, X_val=None, Y_val=None, callbacks=None, 
+	def train(self, X, Y, callbacks=None, 
 	        loss="binary_cross_entropy", learning_rate=0.01, batch_size=20, epochs=10000):
 
 		self.set_train_parameters(X, Y, loss, batch_size, epochs, learning_rate)
@@ -33,18 +31,17 @@ class Model():
 		for epoch in range(0, self.epochs):
 			X_curr, Y_curr = u.shuffle_order(X_norm, self.Y)
 			batches = u.split_in_batches(X_curr, Y_curr, self.batch_size)
-			acc, los = [], []
+
 			for batch in batches:
 				X_b, Y_b = batch[0], batch[1]
 				A = self.forward(X_b)
-				los.append(self.loss.forward(A, Y_b))
-				acc.append(self.accuracy.forward(A, Y_b))
+
 				patch = self.loss.backward(A, Y_b)
 				self.backward(patch, Y_b)
 
-			metrics = self.manage_train_history(X_val, Y_val, acc, los)
+			logs = {}
 
-			if self.callback(callbacks, 'on_epoch_end', epoch, metrics):
+			if self.callback(callbacks, 'on_epoch_end', epoch, logs):
 				break
 
 		self.callback(callbacks, 'on_train_end')
@@ -116,26 +113,6 @@ class Model():
 		self.batch_size = batch_size
 		self.epochs = epochs
 		self.learning_rate = learning_rate
-		self.accuracy_val = []
-		self.loss_val = []
-		self.accuracy_train = []
-		self.loss_train = []
-
-	def manage_train_history(self, X_val, Y_val, accuracy, loss):
-		if X_val is not None and Y_val is not None:
-			A_val = self.predict(X_val)
-			self.accuracy_val.append(self.accuracy.forward(A_val, Y_val))
-			self.loss_val.append(self.loss.forward(A_val, Y_val))
-
-		self.accuracy_train.append(np.mean(accuracy))
-		self.loss_train.append(np.mean(loss))
-
-		metrics = {'accuracy': self.accuracy_train[-1], 'loss': self.loss_train[-1]}
-		if self.loss_val:
-			metrics['val_accuracy'] = self.accuracy_val[-1]
-			metrics['val_loss'] = self.loss_val[-1]
-
-		return metrics
 
 	def get_weights(self):
 		return [layer.get_weights() for layer in self.layers]

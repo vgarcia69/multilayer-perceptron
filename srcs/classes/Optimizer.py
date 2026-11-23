@@ -1,9 +1,16 @@
 import numpy as np
+from abc import ABC, abstractmethod
 
-class Optimizer:
+class Optimizer(ABC):
+	@abstractmethod
+	def update(self, dW, dB, W, B, learning_rate):
+		pass
+
+class GradientDescent(Optimizer):
 	def update(self, dW, dB, W, B, learning_rate):
 		W -= dW * learning_rate
 		B -= dB * learning_rate
+
 
 class Adam(Optimizer):
 	def __init__(self):

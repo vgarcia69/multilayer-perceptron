@@ -14,13 +14,13 @@ weights_initializers = {
 }
 
 optimizer_functions = {
-	"default": o.Optimizer,
+	"gradient_descent": o.GradientDescent,
 	"adam": o.Adam
 }
 
 class DenseLayer:
 
-	def __init__(self, n_inputs, n_neurons, activation, optimizer="default", weights_initializer="random"):
+	def __init__(self, n_inputs, n_neurons, activation, optimizer="gradient_descent", weights_initializer="random"):
 		self.n_neurons = n_neurons
 		self.n_inputs = n_inputs
 		self.weights = weights_initializers[weights_initializer](n_inputs, n_neurons)
