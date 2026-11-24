@@ -1,10 +1,12 @@
-VENV	= venv
-PYTHON	= $(VENV)/bin/python
-PIP     = $(VENV)/bin/pip
-STAMP	= $(VENV)/.installed
-DATA   ?= data/data.csv
-MODELS ?= $(wildcard data/history_*.json)
-GENERATED = data/training.csv data/validation.csv data/trained_model.json
+VENV	   = venv
+PYTHON	   = $(VENV)/bin/python
+PIP        = $(VENV)/bin/pip
+STAMP	   = $(VENV)/.installed
+DATA      ?= data/data.csv
+MODELS    ?= $(wildcard data/history_*.json)
+TEST_FILE ?= data/validation.csv
+CONFIG    ?= data/config.json
+GENERATED  = data/training.csv data/validation.csv data/trained_model.json
 
 .PHONY: split train predict compare clean fclean echo
 
@@ -21,10 +23,10 @@ split: $(STAMP)
 	$(PYTHON) srcs/split_data.py $(DATA)
 
 train: $(STAMP)
-	$(PYTHON) srcs/train.py
+	$(PYTHON) srcs/train.py $(CONFIG)
 
 predict: $(STAMP)
-	$(PYTHON) srcs/predict.py
+	$(PYTHON) srcs/predict.py $(TEST_FILE)
 
 compare: $(STAMP)
 	$(PYTHON) srcs/compare.py $(MODELS)

@@ -7,11 +7,14 @@ import numpy as np
 
 
 def main():
-	df = load_csv("data/validation.csv")
+	if len(sys.argv) != 2:
+		print(f"Usage: python {sys.argv[0]} <dataset.csv>")
+		sys.exit(1)
+	df = load_csv(sys.argv[1])
 	dataset = Dataset(df)
 
-	X = to_float(dataset.data[:, 2:], "data/validation.csv")
-	check_labels(dataset.data[:, 1], "data/validation.csv")
+	X = to_float(dataset.data[:, 2:], sys.argv[1])
+	check_labels(dataset.data[:, 1], sys.argv[1])
 	is_m = dataset.data[:, 1] == "M"
 	Y = np.c_[~is_m, is_m].astype(int)
 
