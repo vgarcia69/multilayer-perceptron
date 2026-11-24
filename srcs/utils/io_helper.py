@@ -70,8 +70,7 @@ def parse_config(path="data/config.json"):
 		"learning_rate": (int, float),
 		"batch_size": int,
 		"optionnal_metrics": list,
-		"optionnal_callbacks": list,
-		"optionnal_callbacks": list,
+		"optionnal_callbacks": list
 	}
 
 	try:
@@ -103,6 +102,9 @@ def parse_config(path="data/config.json"):
 	for key, (value, allowed) in choices.items():
 		if value not in allowed:
 			raise OSError(f"Error: '{path}': '{key}' must be one of {list(allowed)}")
+
+	if "softmax" in config["activations"]:
+		raise OSError(f"Error: only relu and sigmoid are supported in hidden layers")
 
 	allowed_callbacks = ["console_logger", "graphics", "early_stopping"]
 	for name in config["optionnal_callbacks"]:
