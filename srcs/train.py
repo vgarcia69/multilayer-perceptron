@@ -24,16 +24,16 @@ def main():
 	if X_val.shape[1] != X.shape[1]:
 		raise OSError(f"Error: validation has {X_val.shape[1]} features, training has {X.shape[1]}")
 
-	opt = config["optimizer"]
+	optimizer = config["optimizer"]
 	init = config["weights_initializer"]
 	act  = config["activations"].lower()
 	shapes = [X.shape[1]] + config["layer"]
 
 	layers = [
-		DenseLayer(n_in, n_out, activation=act, weights_initializer=init, optimizer=opt)
+		DenseLayer(n_in, n_out, activation=act, weights_initializer=init, optimizer=optimizer)
 		for n_in, n_out in zip(shapes[:-1], shapes[1:])
 	]
-	layers.append(DenseLayer(shapes[-1], Y.shape[1], activation="softmax", weights_initializer=init, optimizer=opt))
+	layers.append(DenseLayer(shapes[-1], Y.shape[1], activation="softmax", weights_initializer=init, optimizer=optimizer))
 	model = Model(layers)
 
 	metrics = Metrics(X, Y, metrics_required=["accuracy", "loss"] + config["optionnal_metrics"])
